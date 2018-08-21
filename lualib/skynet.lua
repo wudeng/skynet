@@ -255,7 +255,7 @@ function skynet.localname(name)
 end
 
 function skynet.now()
-    return c.now() * 10
+    return c.now() / 10
 end
 
 skynet.hpc = c.hpc	-- high performance counter
@@ -286,7 +286,7 @@ local starttime
 
 function skynet.starttime()
 	if not starttime then
-		starttime = c.intcommand("STARTTIME") * 10
+		starttime = c.intcommand("STARTTIME")
 	end
 	return starttime
 end
