@@ -203,7 +203,7 @@ hash_insert(struct hashmap * hash, const char name[GLOBALNAME_LENGTH]) {
 	return node;
 }
 
-static struct hashmap * 
+static struct hashmap *
 hash_new() {
 	struct hashmap * h = skynet_malloc(sizeof(struct hashmap));
 	memset(h,0,sizeof(*h));
@@ -714,6 +714,7 @@ mainloop(struct skynet_context * context, void * ud, int type, int session, uint
 	}
 }
 
+// 四个c模块之一，通过模块管理
 int
 harbor_init(struct harbor *h, struct skynet_context *ctx, const char * args) {
 	h->ctx = ctx;

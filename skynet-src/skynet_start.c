@@ -125,6 +125,7 @@ signal_hup() {
 	}
 }
 
+
 static void *
 thread_timer(void *p) {
 	struct monitor * m = p;
@@ -150,6 +151,7 @@ thread_timer(void *p) {
 	return NULL;
 }
 
+// 工作线程主逻辑
 static void *
 thread_worker(void *p) {
 	struct worker_parm *wp = p;
@@ -179,6 +181,7 @@ thread_worker(void *p) {
 	return NULL;
 }
 
+// 启动3个专用线程以及thread个工作线程
 static void
 start(int thread) {
 	pthread_t pid[thread+3];
@@ -206,10 +209,10 @@ start(int thread) {
 	create_thread(&pid[1], thread_timer, m);
 	create_thread(&pid[2], thread_socket, m);
 
-	static int weight[] = { 
+	static int weight[] = {
 		-1, -1, -1, -1, 0, 0, 0, 0,
-		1, 1, 1, 1, 1, 1, 1, 1, 
-		2, 2, 2, 2, 2, 2, 2, 2, 
+		1, 1, 1, 1, 1, 1, 1, 1,
+		2, 2, 2, 2, 2, 2, 2, 2,
 		3, 3, 3, 3, 3, 3, 3, 3, };
 	struct worker_parm wp[thread];
 	for (i=0;i<thread;i++) {
@@ -224,12 +227,13 @@ start(int thread) {
 	}
 
 	for (i=0;i<thread+3;i++) {
-		pthread_join(pid[i], NULL); 
+		pthread_join(pid[i], NULL);
 	}
 
 	free_monitor(m);
 }
 
+// 启动服务
 static void
 bootstrap(struct skynet_context * logger, const char * cmdline) {
 	int sz = strlen(cmdline);
@@ -244,7 +248,8 @@ bootstrap(struct skynet_context * logger, const char * cmdline) {
 	}
 }
 
-void 
+// 从一个配置文件启动skynet
+void
 skynet_start(struct skynet_config * config) {
 	// register SIGHUP for log file reopen
 	struct sigaction sa;

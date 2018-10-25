@@ -14,14 +14,14 @@
 
 struct connection {
 	int id;	// skynet_socket id
-	uint32_t agent;
+	uint32_t agent; 	// 接收连接数据的服务地址
 	uint32_t client;
 	char remote_name[32];
 	struct databuffer buffer;
 };
 
 struct gate {
-	struct skynet_context *ctx;
+	struct skynet_context *ctx; // 代表网关这个服务
 	int listen_id;
 	uint32_t watchdog;
 	uint32_t broker;
@@ -109,14 +109,14 @@ _ctrl(struct gate * g, const void * msg, int sz) {
 		}
 		return;
 	}
-	if (memcmp(command,"forward",i)==0) {
+	if (memcmp(command,"forward",i)==0) { // 告诉网关这个fd的数据应该传送到agent那个服务。
 		_parm(tmp, sz, i);
 		char * client = tmp;
 		char * idstr = strsep(&client, " ");
 		if (client == NULL) {
 			return;
 		}
-		int id = strtol(idstr , NULL, 10);
+		int id = strtol(idstr , NULL, 10); // the fd
 		char * agent = strsep(&client, " ");
 		if (client == NULL) {
 			return;
@@ -179,11 +179,11 @@ _forward(struct gate *g, struct connection * c, int size) {
 		skynet_send(ctx, 0, g->broker, g->client_tag | PTYPE_TAG_DONTCOPY, fd, temp, size);
 		return;
 	}
-	if (c->agent) {
+	if (c->agent) {	// 如果连接已经指定了agent，发往agent
 		void * temp = skynet_malloc(size);
 		databuffer_read(&c->buffer,&g->mp,temp, size);
 		skynet_send(ctx, c->client, c->agent, g->client_tag | PTYPE_TAG_DONTCOPY, fd , temp, size);
-	} else if (g->watchdog) {
+	} else if (g->watchdog) { // 否则，以TEXT消息的形式发往watchdog
 		char * tmp = skynet_malloc(size + 32);
 		int n = snprintf(tmp,32,"%d data ",c->id);
 		databuffer_read(&c->buffer,&g->mp,tmp+n,size);
@@ -386,7 +386,7 @@ gate_init(struct gate *g , struct skynet_context * ctx, char * parm) {
 	for (i=0;i<max;i++) {
 		g->conn[i].id = -1;
 	}
-	
+
 	g->client_tag = client_tag;
 	g->header_size = header=='S' ? 2 : 4;
 

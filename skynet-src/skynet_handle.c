@@ -11,7 +11,7 @@
 #define DEFAULT_SLOT_SIZE 4
 #define MAX_SLOT_SIZE 0x40000000
 
-struct handle_name {
+struct handle_name { 	// 名字与服务地址的映射
 	char * name;
 	uint32_t handle;
 };
@@ -23,20 +23,20 @@ struct handle_storage {
 	uint32_t handle_index;
 	int slot_size;
 	struct skynet_context ** slot;
-	
-	int name_cap;
-	int name_count;
-	struct handle_name *name;
+
+	int name_cap;	// name数组空间的大小，如果满了需要翻倍
+	int name_count;			// name数组中的元素个数
+	struct handle_name *name;	// 一个根据名字排好序的数组，注册的本地名字与其对应的地址
 };
 
-static struct handle_storage *H = NULL;
+static struct handle_storage *H = NULL; // 全局存储，主要用来管理服务地址和服务名字
 
 uint32_t
 skynet_handle_register(struct skynet_context *ctx) {
 	struct handle_storage *s = H;
 
 	rwlock_wlock(&s->lock);
-	
+
 	for (;;) {
 		int i;
 		uint32_t handle = s->handle_index;
@@ -109,7 +109,7 @@ skynet_handle_retire(uint32_t handle) {
 	return ret;
 }
 
-void 
+void
 skynet_handle_retireall() {
 	struct handle_storage *s = H;
 	for (;;) {
@@ -133,7 +133,8 @@ skynet_handle_retireall() {
 	}
 }
 
-struct skynet_context * 
+// 根据handle定位服务，找到以后引用次数加1
+struct skynet_context *
 skynet_handle_grab(uint32_t handle) {
 	struct handle_storage *s = H;
 	struct skynet_context * result = NULL;
@@ -152,7 +153,8 @@ skynet_handle_grab(uint32_t handle) {
 	return result;
 }
 
-uint32_t 
+// 根据名字定位服务地址
+uint32_t
 skynet_handle_findname(const char * name) {
 	struct handle_storage *s = H;
 
@@ -182,6 +184,7 @@ skynet_handle_findname(const char * name) {
 	return handle;
 }
 
+// 在适当的位置插入新的名字映射
 static void
 _insert_name_before(struct handle_storage *s, char *name, uint32_t handle, int before) {
 	if (s->name_count >= s->name_cap) {
@@ -232,7 +235,7 @@ _insert_name(struct handle_storage *s, const char * name, uint32_t handle) {
 	return result;
 }
 
-const char * 
+const char *
 skynet_handle_namehandle(uint32_t handle, const char *name) {
 	rwlock_wlock(&H->lock);
 
@@ -243,7 +246,7 @@ skynet_handle_namehandle(uint32_t handle, const char *name) {
 	return ret;
 }
 
-void 
+void
 skynet_handle_init(int harbor) {
 	assert(H==NULL);
 	struct handle_storage * s = skynet_malloc(sizeof(*H));

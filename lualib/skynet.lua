@@ -593,6 +593,7 @@ local function raw_dispatch_message(prototype, msg, sz, session, source)
 	end
 end
 
+-- 服务的消息处理函数
 function skynet.dispatch_message(...)
 	local succ, err = pcall(raw_dispatch_message,...)
 	while true do

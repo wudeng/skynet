@@ -49,11 +49,11 @@ struct timer {
 	struct spinlock lock;
 	uint32_t time;
 	uint32_t starttime;
-	uint64_t current;
+	uint64_t current;	// 当前时间
 	uint64_t current_point;
 };
 
-static struct timer * TI = NULL;
+static struct timer * TI = NULL; // 静态全局变量
 
 static inline struct timer_node *
 link_clear(struct link_list *list) {
@@ -75,7 +75,7 @@ static void
 add_node(struct timer *T,struct timer_node *node) {
 	uint32_t time=node->expire;
 	uint32_t current_time=T->time;
-	
+
 	if ((time|TIME_NEAR_MASK)==(current_time|TIME_NEAR_MASK)) {
 		link(&T->near[time&TIME_NEAR_MASK],node);
 	} else {
@@ -88,7 +88,7 @@ add_node(struct timer *T,struct timer_node *node) {
 			mask <<= TIME_LEVEL_SHIFT;
 		}
 
-		link(&T->t[i][((time>>(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) & TIME_LEVEL_MASK)],node);	
+		link(&T->t[i][((time>>(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) & TIME_LEVEL_MASK)],node);
 	}
 }
 
@@ -129,7 +129,7 @@ timer_shift(struct timer *T) {
 			int idx=time & TIME_LEVEL_MASK;
 			if (idx!=0) {
 				move_list(T, i, idx);
-				break;				
+				break;
 			}
 			mask <<= TIME_LEVEL_SHIFT;
 			time >>= TIME_LEVEL_SHIFT;
@@ -149,17 +149,17 @@ dispatch_list(struct timer_node *current) {
 		message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT;
 
 		skynet_context_push(event->handle, &message);
-		
+
 		struct timer_node * temp = current;
 		current=current->next;
-		skynet_free(temp);	
+		skynet_free(temp);
 	} while (current);
 }
 
 static inline void
 timer_execute(struct timer *T) {
 	int idx = T->time & TIME_NEAR_MASK;
-	
+
 	while (T->near[idx].head.next) {
 		struct timer_node *current = link_clear(&T->near[idx]);
 		SPIN_UNLOCK(T);
@@ -169,7 +169,7 @@ timer_execute(struct timer *T) {
 	}
 }
 
-static void 
+static void
 timer_update(struct timer *T) {
 	SPIN_LOCK(T);
 
@@ -263,6 +263,7 @@ gettime() {
 	return t;
 }
 
+// 定时器的tick
 void
 skynet_updatetime(void) {
 	uint64_t cp = gettime();
@@ -285,12 +286,13 @@ skynet_starttime(void) {
 	return TI->starttime;
 }
 
-uint64_t 
+uint64_t
 skynet_now(void) {
 	return TI->current;
 }
 
-void 
+// 初始化定时器
+void
 skynet_timer_init(void) {
 	TI = timer_create_timer();
 	uint32_t current = 0;

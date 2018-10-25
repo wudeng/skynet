@@ -31,7 +31,7 @@ cleardummy(lua_State *L) {
   return 0;
 }
 
-static int 
+static int
 codecache(lua_State *L) {
 	luaL_Reg l[] = {
 		{ "clear", cleardummy },
@@ -46,7 +46,7 @@ codecache(lua_State *L) {
 
 #endif
 
-static int 
+static int
 traceback (lua_State *L) {
 	const char *msg = lua_tostring(L, 1);
 	if (msg)
@@ -72,6 +72,7 @@ optstring(struct skynet_context *ctx, const char *key, const char * str) {
 	return ret;
 }
 
+// lua服务初始化，调用loader执行lua脚本
 static int
 init_cb(struct snlua *l, struct skynet_context *ctx, const char * args, size_t sz) {
 	lua_State *L = l->L;

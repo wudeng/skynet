@@ -11,18 +11,21 @@
 #include <string.h>
 #include <stdbool.h>
 
-static struct socket_server * SOCKET_SERVER = NULL;
+static struct socket_server * SOCKET_SERVER = NULL; // 全局的网络管理
 
-void 
+// 系统启动的时候初始化网络服务
+void
 skynet_socket_init() {
 	SOCKET_SERVER = socket_server_create(skynet_now());
 }
 
+// 系统退出时调用
 void
 skynet_socket_exit() {
 	socket_server_exit(SOCKET_SERVER);
 }
 
+// 回收
 void
 skynet_socket_free() {
 	socket_server_release(SOCKET_SERVER);
@@ -66,7 +69,7 @@ forward_message(int type, bool padding, struct socket_message * result) {
 	message.session = 0;
 	message.data = sm;
 	message.sz = sz | ((size_t)PTYPE_SOCKET << MESSAGE_TYPE_SHIFT);
-	
+
 	if (skynet_context_push((uint32_t)result->opaque, &message)) {
 		// todo: report somewhere to close socket
 		// don't call skynet_socket_close here (It will block mainloop)
@@ -75,7 +78,7 @@ forward_message(int type, bool padding, struct socket_message * result) {
 	}
 }
 
-int 
+int
 skynet_socket_poll() {
 	struct socket_server *ss = SOCKET_SERVER;
 	assert(ss);
@@ -126,37 +129,37 @@ skynet_socket_send_lowpriority(struct skynet_context *ctx, int id, void *buffer,
 	return socket_server_send_lowpriority(SOCKET_SERVER, id, buffer, sz);
 }
 
-int 
+int
 skynet_socket_listen(struct skynet_context *ctx, const char *host, int port, int backlog) {
 	uint32_t source = skynet_context_handle(ctx);
 	return socket_server_listen(SOCKET_SERVER, source, host, port, backlog);
 }
 
-int 
+int
 skynet_socket_connect(struct skynet_context *ctx, const char *host, int port) {
 	uint32_t source = skynet_context_handle(ctx);
 	return socket_server_connect(SOCKET_SERVER, source, host, port);
 }
 
-int 
+int
 skynet_socket_bind(struct skynet_context *ctx, int fd) {
 	uint32_t source = skynet_context_handle(ctx);
 	return socket_server_bind(SOCKET_SERVER, source, fd);
 }
 
-void 
+void
 skynet_socket_close(struct skynet_context *ctx, int id) {
 	uint32_t source = skynet_context_handle(ctx);
 	socket_server_close(SOCKET_SERVER, source, id);
 }
 
-void 
+void
 skynet_socket_shutdown(struct skynet_context *ctx, int id) {
 	uint32_t source = skynet_context_handle(ctx);
 	socket_server_shutdown(SOCKET_SERVER, source, id);
 }
 
-void 
+void
 skynet_socket_start(struct skynet_context *ctx, int id) {
 	uint32_t source = skynet_context_handle(ctx);
 	socket_server_start(SOCKET_SERVER, source, id);
@@ -167,18 +170,18 @@ skynet_socket_nodelay(struct skynet_context *ctx, int id) {
 	socket_server_nodelay(SOCKET_SERVER, id);
 }
 
-int 
+int
 skynet_socket_udp(struct skynet_context *ctx, const char * addr, int port) {
 	uint32_t source = skynet_context_handle(ctx);
 	return socket_server_udp(SOCKET_SERVER, source, addr, port);
 }
 
-int 
+int
 skynet_socket_udp_connect(struct skynet_context *ctx, int id, const char * addr, int port) {
 	return socket_server_udp_connect(SOCKET_SERVER, id, addr, port);
 }
 
-int 
+int
 skynet_socket_udp_send(struct skynet_context *ctx, int id, const char * address, const void *buffer, int sz) {
 	return socket_server_udp_send(SOCKET_SERVER, id, (const struct socket_udp_address *)address, buffer, sz);
 }

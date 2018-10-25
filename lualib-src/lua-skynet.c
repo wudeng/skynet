@@ -55,7 +55,7 @@ traceback (lua_State *L) {
 static int
 _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t source, const void * msg, size_t sz) {
 	lua_State *L = ud;
-	int trace = 1;
+	int trace = 1; 	// the index of the traceback function
 	int r;
 	int top = lua_gettop(L);
 	if (top == 0) {
@@ -64,7 +64,7 @@ _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t 
 	} else {
 		assert(top == 2);
 	}
-	lua_pushvalue(L,2);
+	lua_pushvalue(L,2);	// skynet.dispatch_message
 
 	lua_pushinteger(L, type);
 	lua_pushlightuserdata(L, (void *)msg);
@@ -72,7 +72,7 @@ _cb(struct skynet_context * context, void * ud, int type, int session, uint32_t 
 	lua_pushinteger(L, session);
 	lua_pushinteger(L, source);
 
-	r = lua_pcall(L, 5, 0 , trace);
+	r = lua_pcall(L, 5, 0 , trace);	// call skynet.dispatch(prototype,msg,sz,session,source)
 
 	if (r == LUA_OK) {
 		return 0;
@@ -194,7 +194,7 @@ lintcommand(lua_State *L) {
 
 	result = skynet_command(context, cmd, parm);
 	if (result) {
-		char *endptr = NULL; 
+		char *endptr = NULL;
 		lua_Integer r = strtoll(result, &endptr, 0);
 		if (endptr == NULL || *endptr != '\0') {
 			// may be real number
@@ -457,13 +457,13 @@ ltrace(lua_State *L) {
 			skynet_error(context, "<TRACE %s> %" PRId64 " %s : %s:%d", tag, get_time(), user, si[0].source, si[0].line);
 			break;
 		case 2:
-			skynet_error(context, "<TRACE %s> %" PRId64 " %s : %s:%d %s:%d", tag, get_time(), user, 
+			skynet_error(context, "<TRACE %s> %" PRId64 " %s : %s:%d %s:%d", tag, get_time(), user,
 				si[0].source, si[0].line,
 				si[1].source, si[1].line
 				);
 			break;
 		case 3:
-			skynet_error(context, "<TRACE %s> %" PRId64 " %s : %s:%d %s:%d %s:%d", tag, get_time(), user, 
+			skynet_error(context, "<TRACE %s> %" PRId64 " %s : %s:%d %s:%d %s:%d", tag, get_time(), user,
 				si[0].source, si[0].line,
 				si[1].source, si[1].line,
 				si[2].source, si[2].line
