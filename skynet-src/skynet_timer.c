@@ -21,9 +21,9 @@
 
 typedef void (*timer_execute_func)(void *ud,void *arg);
 
-#define TIME_NEAR_SHIFT 8
+#define TIME_NEAR_SHIFT 12
 #define TIME_NEAR (1 << TIME_NEAR_SHIFT)
-#define TIME_LEVEL_SHIFT 6
+#define TIME_LEVEL_SHIFT 5
 #define TIME_LEVEL (1 << TIME_LEVEL_SHIFT)
 #define TIME_NEAR_MASK (TIME_NEAR-1)
 #define TIME_LEVEL_MASK (TIME_LEVEL-1)
@@ -75,7 +75,7 @@ static void
 add_node(struct timer *T,struct timer_node *node) {
 	uint32_t time=node->expire;
 	uint32_t current_time=T->time;
-	
+
 	if ((time|TIME_NEAR_MASK)==(current_time|TIME_NEAR_MASK)) {
 		link(&T->near[time&TIME_NEAR_MASK],node);
 	} else {
@@ -88,7 +88,7 @@ add_node(struct timer *T,struct timer_node *node) {
 			mask <<= TIME_LEVEL_SHIFT;
 		}
 
-		link(&T->t[i][((time>>(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) & TIME_LEVEL_MASK)],node);	
+		link(&T->t[i][((time>>(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) & TIME_LEVEL_MASK)],node);
 	}
 }
 
@@ -129,7 +129,7 @@ timer_shift(struct timer *T) {
 			int idx=time & TIME_LEVEL_MASK;
 			if (idx!=0) {
 				move_list(T, i, idx);
-				break;				
+				break;
 			}
 			mask <<= TIME_LEVEL_SHIFT;
 			time >>= TIME_LEVEL_SHIFT;
@@ -150,10 +150,10 @@ dispatch_list(struct timer_node *current) {
 		message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT;
 
 		skynet_context_push(event->handle, &message);
-		
+
 		struct timer_node * temp = current;
 		current=current->next;
-		skynet_free(temp);	
+		skynet_free(temp);
 		++count;
 	} while (current);
 	return count;
@@ -163,7 +163,7 @@ static inline int
 timer_execute(struct timer *T) {
 	int count = 0;
 	int idx = T->time & TIME_NEAR_MASK;
-	
+
 	while (T->near[idx].head.next) {
 		struct timer_node *current = link_clear(&T->near[idx]);
 		SPIN_UNLOCK(T);
@@ -295,12 +295,12 @@ skynet_starttime(void) {
 	return TI->starttime;
 }
 
-uint64_t 
+uint64_t
 skynet_now(void) {
 	return TI->current;
 }
 
-void 
+void
 skynet_timer_init(void) {
 	TI = timer_create_timer();
 	uint32_t current = 0;
