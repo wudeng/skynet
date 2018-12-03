@@ -229,7 +229,7 @@ function host:dispatch(...)
 end
 
 function host:attach(sp)
-	return function(name, args, session, ud)
+	return function(name, args, session, ud, pack)
 		local proto = queryproto(sp, name)
 		header_tmp.type = proto.tag
 		header_tmp.session = session
@@ -240,11 +240,12 @@ function host:attach(sp)
 			self.__session[session] = proto.response or true
 		end
 
+		pack = pack or core.pack
 		if proto.request then
 			local content = core.encode(proto.request, args)
-			return core.pack(header ..  content)
+			return pack(header ..  content)
 		else
-			return core.pack(header)
+			return pack(header)
 		end
 	end
 end
