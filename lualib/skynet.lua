@@ -265,9 +265,7 @@ function skynet.localname(name)
 end
 
 -- 1ms resolution
-function skynet.hnow()
-    return c.now()
-end
+skynet.hnow = c.now
 
 function skynet.now()
     return math.floor(c.now() / 10)
@@ -307,7 +305,7 @@ function skynet.starttime()
 end
 
 function skynet.time()
-	return skynet.now()/100 + (starttime or skynet.starttime())
+	return skynet.hnow()/1000 + (starttime or skynet.starttime())
 end
 
 function skynet.exit()

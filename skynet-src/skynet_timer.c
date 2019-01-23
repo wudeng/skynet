@@ -238,7 +238,7 @@ skynet_timeout(uint32_t handle, int time, int session) {
 	return session;
 }
 
-// centisecond: 1/1000 second
+// millisecond: 1/1000 second
 static void
 systime(uint32_t *sec, uint32_t *cs) {
 #if !defined(__APPLE__) || defined(AVAILABLE_MAC_OS_X_VERSION_10_12_AND_LATER)
