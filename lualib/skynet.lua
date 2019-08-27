@@ -8,6 +8,7 @@ local pcall = pcall
 local table = table
 local tremove = table.remove
 local tinsert = table.insert
+local traceback = debug.traceback
 
 local profile = require "skynet.profile"
 
@@ -268,7 +269,7 @@ end
 skynet.hnow = c.now
 
 function skynet.now()
-    return math.floor(c.now() / 10)
+	return math.floor(c.now() / 10)
 end
 
 skynet.hpc = c.hpc	-- high performance counter
@@ -789,7 +790,7 @@ function skynet.task(ret)
 	local tt = type(ret)
 	if tt == "table" then
 		for session,co in pairs(session_id_coroutine) do
-			ret[session] = debug.traceback(co)
+			ret[session] = traceback(co)
 		end
 		return
 	elseif tt == "number" then
@@ -807,6 +808,20 @@ function skynet.task(ret)
 		end
 		return
 	end
+end
+
+function skynet.uniqtask()
+	local ret = {}
+	for session, co in pairs(session_id_coroutine) do
+		local stack = traceback(co)
+		local info = ret[stack] or {count = 0, sessions = {}}
+		info.count = info.count + 1
+		if info.count < 10 then
+			info.sessions[#info.sessions+1] = session
+		end
+		ret[stack] = info
+	end
+	return ret
 end
 
 function skynet.term(service)
